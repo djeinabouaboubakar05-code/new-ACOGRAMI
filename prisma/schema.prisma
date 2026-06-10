@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String      @id @default(cuid())
+  email     String      @unique
+  password  String
+  nom       String
+  prenom    String
+  role      String      @default("MEMBRE")
+  village   String?
+  estValide Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  actualites Actualite[]
+  cotisations Cotisation[]
+  dons Don[]
+  commentairesProjet ProjetCommentaire[]
+  inscriptions InscriptionEvenement[]
+}
+
+model Actualite {
+  id        String   @id @default(cuid())
+  titre     String
+  contenu   String
+  extrait   String?
+  categorie String   @default("actualite")
+  image     String?
+  auteurId  String
+  auteur    User     @relation(fields: [auteurId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model DemandeAdhesion {
+  id        String   @id @default(cuid())
+  email     String
+  nom       String
+  prenom    String
+  village   String
+  statut    String   @default("EN_ATTENTE")
+  motifRejet String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  nom       String
+  email     String
+  message   String
+  lu        Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Evenement {
+  id            String                  @id @default(cuid())
+  titre         String
+  description   String
+  date          DateTime
+  lieu          String
+  statut        String                  @default("EN_ATTENTE")
+  image         String?
+  createdAt     DateTime                @default(now())
+  inscriptions  InscriptionEvenement[]
+}
+
+model InscriptionEvenement {
+  id          String    @id @default(cuid())
+  evenementId String
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([evenementId, userId])
+}
+
+model Projet {
+  id          String   @id @default(cuid())
+  titre       String
+  description String
+  statut      String   @default("EN_ATTENTE")
+  image       String?
+  soumisPar   String
+  createdAt   DateTime @default(now())
+  commentaires ProjetCommentaire[]
+}
+
+model Galerie {
+  id        String   @id @default(cuid())
+  titre     String?
+  image     String
+  createdAt DateTime @default(now())
+}
+
+model Village {
+  id        String   @id @default(cuid())
+  nom       String   @unique
+  slug      String   @unique
+  description String?
+  image     String?
+  createdAt DateTime @default(now())
+}
+
+model MembreBureau {
+  id        String   @id @default(cuid())
+  nom       String
+  prenom    String
+  fonction  String
+  telephone String?
+  email     String?
+  photo     String?
+  ordre     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Valeur {
+  id          String   @id @default(cuid())
+  titre       String
+  resume      String
+  description String
+  icone       String?
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Partenaire {
+  id        String   @id @default(cuid())
+  nom       String
+  logo      String?
+  url       String?
+  createdAt DateTime @default(now())
+}
+
+model Cotisation {
+  id        String   @id @default(cuid())
+  montant   Int
+  annee     String
+  statut    String   @default("PAYE") // PAYE, EN_RETARD, IMPAYE
+  date      DateTime @default(now())
+  ref       String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model NewsletterAbonne {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Don {
+  id        String   @id @default(cuid())
+  montant   Int
+  nom       String
+  email     String
+  reference String   @unique
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  statut    String   @default("EN_ATTENTE") // EN_ATTENTE, VALIDE
+  createdAt DateTime @default(now())
+}
+
+model ProjetCommentaire {
+  id        String   @id @default(cuid())
+  contenu   String
+  projetId  String
+  projet    Projet   @relation(fields: [projetId], references: [id], onDelete: Cascade)
+  auteurId  String
+  auteur    User     @relation(fields: [auteurId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Configuration {
+  id        String   @id @default("global")
+  cle       String   @unique
+  valeur    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

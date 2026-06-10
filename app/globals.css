@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+/* =========================================================
+   ACOGRAMI — Design System · 2 thèmes : Jour & Nuit
+   ========================================================= */
+
+/* -------------------------------------------------------
+   COULEURS DE MARQUE (invariantes)
+------------------------------------------------------- */
+:root {
+  --acogrami-green:       #1b4d3e;
+  --acogrami-green-light: #2a6b55;
+  --acogrami-green-dark:  #113328;
+  --acogrami-earth:       #a0522d;
+  --acogrami-accent:      #cc7722;
+  --acogrami-accent-dark: #b06318;
+  --acogrami-footer:      #1b4d3e;
+}
+
+/* -------------------------------------------------------
+   THÈME JOUR — blanc pur, net, professionnel
+------------------------------------------------------- */
+:root, .light {
+  --background:         #ffffff;
+  --background-alt:     #f7f9fc;
+  --foreground:         #0a0f0a;
+  --foreground-subtle:  #2d3748;
+
+  --card:               #ffffff;
+  --card-foreground:    #0a0f0a;
+  --card-border:        #dde3ec;
+
+  --muted:              #f0f4f8;
+  --muted-foreground:   #5a6a7a;
+
+  --sidebar:            #f7f9fc;
+  --sidebar-foreground: #1a2535;
+  --sidebar-border:     #dde3ec;
+  --sidebar-hover:      #eaf0f8;
+  --sidebar-active-bg:  #1b4d3e;
+  --sidebar-active-fg:  #ffffff;
+
+  --border:             #dde3ec;
+  --input-bg:           #ffffff;
+  --input-border:       #c8d3e0;
+  --input-text:         #0a0f0a;
+  --ring:               #1b4d3e;
+
+  --badge-success-bg:   #dcfce7;
+  --badge-success-fg:   #14532d;
+  --badge-warn-bg:      #fef9c3;
+  --badge-warn-fg:      #713f12;
+  --badge-danger-bg:    #fee2e2;
+  --badge-danger-fg:    #7f1d1d;
+  --badge-muted-bg:     #f0f4f8;
+  --badge-muted-fg:     #4a5568;
+
+  --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+  --shadow-md:  0 4px 16px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg:  0 12px 32px -4px rgb(0 0 0 / 0.10), 0 4px 12px -4px rgb(0 0 0 / 0.07);
+  --shadow-card: 0 1px 4px 0 rgb(0 0 0 / 0.07), 0 4px 16px -4px rgb(0 0 0 / 0.06);
+
+  --radius:    0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+}
+
+/* -------------------------------------------------------
+   THÈME NUIT — sombre profond, lisible, élégant
+------------------------------------------------------- */
+.dark {
+  --background:         #0d1117;
+  --background-alt:     #161b22;
+  --foreground:         #e6edf3;
+  --foreground-subtle:  #b1bac4;
+
+  --card:               #161b22;
+  --card-foreground:    #e6edf3;
+  --card-border:        #30363d;
+
+  --muted:              #21262d;
+  --muted-foreground:   #8b949e;
+
+  --sidebar:            #0d1117;
+  --sidebar-foreground: #cdd9e5;
+  --sidebar-border:     #21262d;
+  --sidebar-hover:      #1c2128;
+  --sidebar-active-bg:  #238636;
+  --sidebar-active-fg:  #ffffff;
+
+  --border:             #30363d;
+  --input-bg:           #0d1117;
+  --input-border:       #30363d;
+  --input-text:         #e6edf3;
+  --ring:               #2ea043;
+
+  --badge-success-bg:   #0f2d1a;
+  --badge-success-fg:   #56d364;
+  --badge-warn-bg:      #2b1d0a;
+  --badge-warn-fg:      #f0a03a;
+  --badge-danger-bg:    #2d0f0f;
+  --badge-danger-fg:    #ff7b72;
+  --badge-muted-bg:     #21262d;
+  --badge-muted-fg:     #8b949e;
+
+  --shadow-sm:  0 1px 3px 0 rgb(0 0 0 / 0.40);
+  --shadow-md:  0 4px 16px -2px rgb(0 0 0 / 0.50);
+  --shadow-lg:  0 12px 32px -4px rgb(0 0 0 / 0.60);
+  --shadow-card: 0 1px 4px 0 rgb(0 0 0 / 0.50);
+
+  --radius:    0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
+}
+
+/* =========================================================
+   MAPPAGE TAILWIND V4
+   ========================================================= */
+@theme inline {
+  --color-brand:              var(--acogrami-green);
+  --color-brand-light:        var(--acogrami-green-light);
+  --color-brand-dark:         var(--acogrami-green-dark);
+  --color-earth:              var(--acogrami-earth);
+  --color-accent:             var(--acogrami-accent);
+  --color-accent-dark:        var(--acogrami-accent-dark);
+  --color-acogrami-green:     var(--acogrami-green);
+  --color-acogrami-earth:     var(--acogrami-earth);
+  --color-acogrami-accent:    var(--acogrami-accent);
+  --color-acogrami-footer:    var(--acogrami-footer);
+
+  --color-background:         var(--background);
+  --color-background-alt:     var(--background-alt);
+  --color-foreground:         var(--foreground);
+  --color-foreground-subtle:  var(--foreground-subtle);
+
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-card-border:        var(--card-border);
+
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+
+  --color-sidebar:            var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border:     var(--sidebar-border);
+  --color-sidebar-hover:      var(--sidebar-hover);
+  --color-sidebar-active-bg:  var(--sidebar-active-bg);
+  --color-sidebar-active-fg:  var(--sidebar-active-fg);
+
+  --color-border:             var(--border);
+  --color-input-bg:           var(--input-bg);
+  --color-input-border:       var(--input-border);
+  --color-input-text:         var(--input-text);
+  --color-ring:               var(--ring);
+
+  --color-badge-success-bg:   var(--badge-success-bg);
+  --color-badge-success-fg:   var(--badge-success-fg);
+  --color-badge-warn-bg:      var(--badge-warn-bg);
+  --color-badge-warn-fg:      var(--badge-warn-fg);
+  --color-badge-danger-bg:    var(--badge-danger-bg);
+  --color-badge-danger-fg:    var(--badge-danger-fg);
+
+  --radius:     var(--radius);
+  --radius-lg:  var(--radius-lg);
+  --radius-xl:  var(--radius-xl);
+  --font-sans:  var(--font-montserrat);
+}
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+  border-radius: var(--radius);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.animate-fadeSlideIn  { animation: fadeSlideIn  0.3s ease-out; }
+.animate-fadeIn       { animation: fadeIn        0.2s ease-out; }
+.animate-slideInRight { animation: slideInRight  0.3s ease-out; }
+.animate-pulse-soft   { animation: pulse-soft    2s ease-in-out infinite; }
+
+/* =========================================================
+   UTILITAIRES GLOBAUX
+   ========================================================= */
+.card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.input {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 15%, transparent);
+}
+
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.5rem; padding: 0.625rem 1.25rem;
+  background-color: var(--acogrami-green); color: #ffffff;
+  font-weight: 600; font-size: 0.875rem;
+  border-radius: var(--radius);
+  transition: opacity 0.15s, transform 0.1s; cursor: pointer;
+}
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-accent {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.5rem; padding: 0.625rem 1.25rem;
+  background-color: var(--acogrami-accent); color: #ffffff;
+  font-weight: 600; font-size: 0.875rem;
+  border-radius: var(--radius); transition: opacity 0.15s; cursor: pointer;
+}
+.btn-accent:hover { opacity: 0.9; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.5rem; padding: 0.625rem 1.25rem;
+  background-color: transparent; color: var(--foreground);
+  border: 1px solid var(--border); font-weight: 600; font-size: 0.875rem;
+  border-radius: var(--radius); transition: background-color 0.15s; cursor: pointer;
+}
+.btn-outline:hover { background-color: var(--muted); }
+
+.badge-success {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  background-color: var(--badge-success-bg); color: var(--badge-success-fg);
+  font-size: 0.75rem; font-weight: 600; border-radius: 9999px;
+}
+.badge-warn {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  background-color: var(--badge-warn-bg); color: var(--badge-warn-fg);
+  font-size: 0.75rem; font-weight: 600; border-radius: 9999px;
+}
+.badge-danger {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  background-color: var(--badge-danger-bg); color: var(--badge-danger-fg);
+  font-size: 0.75rem; font-weight: 600; border-radius: 9999px;
+}
+.badge-muted {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.65rem;
+  background-color: var(--muted); color: var(--muted-foreground);
+  font-size: 0.75rem; font-weight: 600; border-radius: 9999px;
+}
+
+.section-title {
+  font-size: 1.875rem; font-weight: 700;
+  color: var(--foreground); line-height: 1.25;
+}
+.section-subtitle {
+  font-size: 1rem; color: var(--muted-foreground); margin-top: 0.5rem;
+}
+.divider {
+  height: 1px; background-color: var(--border); margin: 1.5rem 0;
+}
