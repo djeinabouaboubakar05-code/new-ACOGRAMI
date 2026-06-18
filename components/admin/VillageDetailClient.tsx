@@ -11,18 +11,22 @@ interface Member {
   nom: string;
   email: string;
   role: string;
-  village: string | null;
-  estValide: boolean;
+  villageId: string | null;
+  statut: string;
+  estEnRegle: boolean;
+  estDelegue: boolean;
   createdAt: string | Date;
 }
 
 interface VillageDetailClientProps {
+  villageId: string;
   villageName: string;
+  chefId: string | null;
   members: Member[];
   cotisationsCount: number;
 }
 
-export function VillageDetailClient({ villageName, members, cotisationsCount }: VillageDetailClientProps) {
+export function VillageDetailClient({ villageId, villageName, chefId, members, cotisationsCount }: VillageDetailClientProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -33,7 +37,7 @@ export function VillageDetailClient({ villageName, members, cotisationsCount }: 
       const res = await fetch(`/api/admin/villages/responsable`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, action, village: villageName }),
+        body: JSON.stringify({ userId, action, villageId }),
       });
       if (res.ok) {
         router.refresh();
@@ -54,8 +58,8 @@ export function VillageDetailClient({ villageName, members, cotisationsCount }: 
       m.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const activeCount = members.filter((m) => m.estValide).length;
-  const responsableCount = members.filter((m) => m.role === "RESPONSABLE").length;
+  const activeCount = members.filter((m) => m.statut === "ACTIF").length;
+  const responsableCount = chefId ? 1 : 0;
 
   return (
     <div className="space-y-8 animate-fadeSlideIn">
@@ -155,29 +159,46 @@ export function VillageDetailClient({ villageName, members, cotisationsCount }: 
                     </div>
                   </td>
                   <td className="p-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        m.role === "ADMIN"
-                          ? "bg-red-950/40 text-red-400"
-                          : m.role === "RESPONSABLE"
-                          ? "bg-amber-950/40 text-amber-400"
-                          : "bg-green-950/40 text-green-400"
-                      }`}
-                    >
-                      <ShieldCheck className="h-3 w-3" />
-                      {m.role}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    {m.estValide ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-400">
-                        <UserCheck className="h-3.5 w-3.5" /> Actif
+                    {m.id === chefId ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-400 font-bold bg-amber-950/40 px-2 py-0.5 rounded-full">
+                        <ShieldCheck className="h-3.5 w-3.5" /> Chef / Resp.
                       </span>
+                    ) : m.estDelegue ? (
+                       <span className="inline-flex items-center gap-1 text-xs text-blue-400 font-bold bg-blue-950/40 px-2 py-0.5 rounded-full">
+                         <Users className="h-3.5 w-3.5" /> Délégué
+                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-xs text-red-400">
-                        <UserX className="h-3.5 w-3.5" /> Inactif
+                      <span className="inline-flex items-center gap-1 text-xs text-zinc-400">
+                         Membre
                       </span>
                     )}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex flex-col gap-1">
+                      {m.statut === "ACTIF" ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-green-400">
+                          <UserCheck className="h-3.5 w-3.5" /> Actif
+                        </span>
+                      ) : m.statut === "SUSPENDU" ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-amber-400">
+                          <UserX className="h-3.5 w-3.5" /> Suspendu
+                        </span>
+                      ) : m.statut === "PARTI" ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-red-400">
+                          <UserX className="h-3.5 w-3.5" /> Parti
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-zinc-400">
+                          <UserX className="h-3.5 w-3.5" /> En attente
+                        </span>
+                      )}
+                      
+                      {m.estEnRegle ? (
+                        <span className="text-[10px] text-green-500">En règle</span>
+                      ) : (
+                        <span className="text-[10px] text-red-500">Pas en règle</span>
+                      )}
+                    </div>
                   </td>
                   <td className="p-4 text-text-muted">
                     <div className="flex items-center gap-1.5 text-xs">
@@ -190,7 +211,7 @@ export function VillageDetailClient({ villageName, members, cotisationsCount }: 
                     </div>
                   </td>
                   <td className="p-4 text-right">
-                    {m.role === "RESPONSABLE" ? (
+                    {m.id === chefId ? (
                       <button
                         onClick={() => handleRoleChange(m.id, "demote")}
                         disabled={loadingAction === m.id}
@@ -203,12 +224,12 @@ export function VillageDetailClient({ villageName, members, cotisationsCount }: 
                     ) : (
                       <button
                         onClick={() => handleRoleChange(m.id, "promote")}
-                        disabled={loadingAction === m.id || m.role === "ADMIN"}
+                        disabled={loadingAction === m.id || m.role === "ADMIN" || !!chefId} // Disable if there is already a chef
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors disabled:opacity-50"
-                        title="Nommer Responsable"
+                        title={chefId ? "Un village a déjà un chef" : "Nommer Responsable"}
                       >
                         {loadingAction === m.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
-                        Nommer Resp.
+                        Nommer Chef
                       </button>
                     )}
                   </td>

@@ -15,35 +15,28 @@ export default async function VillageDetailPage({ params }: { params: Promise<{ 
   const { village } = await params;
   const villageName = decodeURIComponent(village);
 
-  const members = await prisma.user.findMany({
-    where: { village: villageName },
-    select: {
-      id: true,
-      prenom: true,
-      nom: true,
-      email: true,
-      role: true,
-      village: true,
-      estValide: true,
-      createdAt: true,
-    },
-    orderBy: { nom: "asc" },
+  const villageData = await prisma.village.findUnique({
+    where: { slug: villageName },
+    include: {
+      membres: {
+        orderBy: { nom: "asc" }
+      }
+    }
   });
 
-  if (members.length === 0 && !["Bafoussam","Bamougoum","Bansoa","Bandjoun","Baham","Batié","Batcham","Baleng","Dschang","Fokoué","Foumban","Foumbot","Koutaba","Mbouda","Penka-Michel","Tonga"].includes(villageName)) {
+  if (!villageData) {
     notFound();
   }
 
-  // Get cotisations count for this village's members
-  const memberIds = members.map((m) => m.id);
-  const cotisationsCount = memberIds.length > 0
-    ? await prisma.cotisation.count({ where: { userId: { in: memberIds } } })
-    : 0;
+  // Pour la phase 1 on ignore les cotisations, mais on garde 0 pour ne pas casser le composant
+  const cotisationsCount = 0;
 
   return (
     <VillageDetailClient
-      villageName={villageName}
-      members={members.map((m) => ({
+      villageName={villageData.nom}
+      villageId={villageData.id}
+      chefId={villageData.chefId}
+      members={villageData.membres.map((m) => ({
         ...m,
         createdAt: m.createdAt.toISOString(),
       }))}

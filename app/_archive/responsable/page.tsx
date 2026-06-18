@@ -10,10 +10,10 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Tableau de bord | Espace Responsable" };
 
-async function getStats(village: string) {
+async function getStats(villageId: string) {
   const [membres, adhesionsAttente] = await Promise.all([
-    prisma.user.count({ where: { village, role: "MEMBRE" } }),
-    prisma.demandeAdhesion.count({ where: { village, statut: "EN_ATTENTE" } }),
+    prisma.user.count({ where: { villageId, role: "MEMBRE" } }),
+    prisma.demandeAdhesion.count({ where: { villageId, statut: "EN_ATTENTE_VILLAGE" } }),
   ]);
   return { membres, adhesionsAttente };
 }
@@ -22,8 +22,9 @@ export default async function ResponsableDashboard() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
 
-  const village = (session.user as any).village;
-  if (!village) {
+  const villageId = (session.user as any).villageId;
+  const villageName = (session.user as any).villageName;
+  if (!villageId) {
     return (
       <div className="space-y-8">
         <div>
@@ -34,7 +35,7 @@ export default async function ResponsableDashboard() {
     );
   }
 
-  const stats = await getStats(village);
+  const stats = await getStats(villageId);
 
   const statCards = [
     { label: "Membres du village", value: stats.membres, icon: Users, color: "#3b82f6" },
@@ -47,7 +48,7 @@ export default async function ResponsableDashboard() {
       <div>
         <h1 className="text-3xl font-bold" style={{ color: "var(--foreground)" }}>Tableau de bord</h1>
         <p className="mt-2" style={{ color: "var(--muted-foreground)" }}>
-          Bienvenue, vous gérez le village de <span className="font-semibold text-acogrami-green">{village}</span>.
+          Bienvenue, vous gérez le village de <span className="font-semibold text-acogrami-green">{villageName}</span>.
         </p>
       </div>
 
@@ -97,7 +98,7 @@ export default async function ResponsableDashboard() {
           </div>
           <div className="p-5">
             <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-              <span className="font-bold" style={{ color: "var(--card-foreground)" }}>{stats.membres}</span> membre{stats.membres > 1 ? "s" : ""} inscrit{stats.membres > 1 ? "s" : ""} pour le village de <span className="font-semibold">{village}</span>.
+              <span className="font-bold" style={{ color: "var(--card-foreground)" }}>{stats.membres}</span> membre{stats.membres > 1 ? "s" : ""} inscrit{stats.membres > 1 ? "s" : ""} pour le village de <span className="font-semibold">{villageName}</span>.
             </p>
           </div>
         </div>

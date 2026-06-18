@@ -6,22 +6,227 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id        String      @id @default(cuid())
-  email     String      @unique
-  password  String
-  nom       String
-  prenom    String
-  role      String      @default("MEMBRE")
-  village   String?
-  estValide Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  actualites Actualite[]
-  cotisations Cotisation[]
-  dons Don[]
-  commentairesProjet ProjetCommentaire[]
-  inscriptions InscriptionEvenement[]
+// --- ENUMERATIONS DU SYSTEME ---
+
+enum RoleSysteme {
+  MEMBRE
+  RESPONSABLE
+  ADMIN
 }
+
+enum RoleVillage {
+  MEMBRE_SIMPLE
+  DELEGUE
+  CHEF_FAMILLE
+}
+
+enum StatutMembre {
+  EN_ATTENTE_VALIDATION
+  EN_REGLE
+  SUSPENDU
+  DECEDE
+  ANCIEN
+}
+
+enum TypePaiement {
+  ADHESION
+  REINSCRIPTION
+  PENALITE
+  AMENDE
+}
+
+enum StatutNewsletter {
+  ACTIF
+  DESABONNE
+}
+
+// --- MODELES DU NOYAU (MVP) ---
+
+model Village {
+  id               String               @id @default(cuid())
+  nom              String               @unique
+  slug             String               @unique
+  description      String?
+  image            String?
+  createdAt        DateTime             @default(now())
+  membres          User[]
+  evenements       Evenement[]
+  assembleesHotes  AssembleeGenerale[]
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  password        String
+  nom             String
+  prenom          String
+  sexe            String?
+  adresse         String?
+  telephone       String?
+  photo           String?
+  matricule       String?        @unique
+  
+  // Relations d'appartenance
+  villageId       String?
+  village         Village?       @relation(fields: [villageId], references: [id])
+  
+  // Rôles et Statuts
+  roleSysteme     RoleSysteme    @default(MEMBRE)
+  roleBureau      String?
+  roleVillage     RoleVillage    @default(MEMBRE_SIMPLE)
+  statut          StatutMembre   @default(EN_ATTENTE_VALIDATION)
+  createdAt       DateTime       @default(now())
+
+  // Trésorerie
+  paiements       Paiement[]
+  amendes         Amende[]
+  
+  // Vie Associative
+  presences       Presence[]
+  notifications   Notification[]
+  evenementsCrees Evenement[]
+  projetsCrees    Projet[]
+  mediasPublies   GalerieMedia[]
+  logs            JournalLog[]
+
+  // Compatibilité Vitrine
+  actualites      Actualite[]
+  dons            Don[]
+}
+
+// --- MODULE 3 & 6 : TRESORERIE ---
+
+model Paiement {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  amendeId       String?        @unique
+  amende         Amende?        @relation(fields: [amendeId], references: [id])
+  
+  montant        Float
+  datePaiement   DateTime       @default(now())
+  type           TypePaiement
+  methode        String
+  preuveUrl      String?
+  reference      String         @unique
+  statut         String         @default("EN_ATTENTE") // EN_ATTENTE, VALIDE, REJETE
+}
+
+model Amende {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  presenceId     String?        @unique
+  presence       Presence?      @relation(fields: [presenceId], references: [id])
+  
+  motif          String
+  montant        Float
+  dateEmission   DateTime       @default(now())
+  estPayee       Boolean        @default(false)
+  paiement       Paiement?
+}
+
+// --- MODULE 8 : ASSEMBLEES GENERALES ---
+
+model AssembleeGenerale {
+  id             String         @id @default(cuid())
+  villageHoteId  String
+  villageHote    Village        @relation(fields: [villageHoteId], references: [id])
+  dateAg         DateTime
+  lieu           String
+  ordreDuJour    String
+  procesVerbal   String?
+  statut         String         @default("PLANIFIEE")
+  createdAt      DateTime       @default(now())
+  presences      Presence[]
+}
+
+model Presence {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id])
+  agId           String
+  ag             AssembleeGenerale @relation(fields: [agId], references: [id])
+  statutPresence String            @default("PRESENT") // PRESENT, ABSENT, EN_RETARD, ABSENT_JUSTIFIE
+  createdAt      DateTime          @default(now())
+  amende         Amende?
+
+  @@unique([agId, userId])
+}
+
+// --- MODULE 9 : EVENEMENTS ET PROJETS ---
+
+model Evenement {
+  id             String         @id @default(cuid())
+  villageId      String?
+  village        Village?       @relation(fields: [villageId], references: [id])
+  createurId     String
+  createur       User           @relation(fields: [createurId], references: [id])
+  
+  titre          String
+  description    String?
+  date           DateTime
+  lieu           String?
+  image          String?
+  estPublic      Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  medias         GalerieMedia[]
+}
+
+model Projet {
+  id             String         @id @default(cuid())
+  adminId        String
+  admin          User           @relation(fields: [adminId], references: [id])
+  
+  titre          String
+  description    String?
+  avancement     Int            @default(0) // Pourcentage 0-100
+  budgetAlloue   Float          @default(0)
+  image          String?
+  createdAt      DateTime       @default(now())
+  medias         GalerieMedia[]
+}
+
+// --- MODULE 12 & 13 : NOTIFICATIONS ET AUDIT ---
+
+model Notification {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id])
+  
+  typeNotif      String         // CONVOCATION, RAPPEL, INFO
+  message        String
+  dateEnvoi      DateTime       @default(now())
+  estLue         Boolean        @default(false)
+}
+
+model JournalLog {
+  id             String         @id @default(cuid())
+  acteurId       String
+  acteur         User           @relation(fields: [acteurId], references: [id])
+  
+  actionRealisee String
+  dateAction     DateTime       @default(now())
+  details        String?
+}
+
+// --- TRANSVERSES ---
+
+model GalerieMedia {
+  id             String         @id @default(cuid())
+  uploadParId    String
+  uploadPar      User           @relation(fields: [uploadParId], references: [id])
+  evenementId    String?
+  evenement      Evenement?     @relation(fields: [evenementId], references: [id])
+  projetId       String?
+  projet         Projet?        @relation(fields: [projetId], references: [id])
+  
+  urlFichier     String
+  titre          String?
+  createdAt      DateTime       @default(now())
+}
+
+// --- MODULE 14 : VITRINE PUBLIQUE (Conservé pour compatibilité) ---
 
 model Actualite {
   id        String   @id @default(cuid())
@@ -35,85 +240,12 @@ model Actualite {
   createdAt DateTime @default(now())
 }
 
-model DemandeAdhesion {
-  id        String   @id @default(cuid())
-  email     String
-  nom       String
-  prenom    String
-  village   String
-  statut    String   @default("EN_ATTENTE")
-  motifRejet String?
-  createdAt DateTime @default(now())
-}
-
 model ContactMessage {
   id        String   @id @default(cuid())
   nom       String
   email     String
   message   String
   lu        Boolean  @default(false)
-  createdAt DateTime @default(now())
-}
-
-model Evenement {
-  id            String                  @id @default(cuid())
-  titre         String
-  description   String
-  date          DateTime
-  lieu          String
-  statut        String                  @default("EN_ATTENTE")
-  image         String?
-  createdAt     DateTime                @default(now())
-  inscriptions  InscriptionEvenement[]
-}
-
-model InscriptionEvenement {
-  id          String    @id @default(cuid())
-  evenementId String
-  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-
-  @@unique([evenementId, userId])
-}
-
-model Projet {
-  id          String   @id @default(cuid())
-  titre       String
-  description String
-  statut      String   @default("EN_ATTENTE")
-  image       String?
-  soumisPar   String
-  createdAt   DateTime @default(now())
-  commentaires ProjetCommentaire[]
-}
-
-model Galerie {
-  id        String   @id @default(cuid())
-  titre     String?
-  image     String
-  createdAt DateTime @default(now())
-}
-
-model Village {
-  id        String   @id @default(cuid())
-  nom       String   @unique
-  slug      String   @unique
-  description String?
-  image     String?
-  createdAt DateTime @default(now())
-}
-
-model MembreBureau {
-  id        String   @id @default(cuid())
-  nom       String
-  prenom    String
-  fonction  String
-  telephone String?
-  email     String?
-  photo     String?
-  ordre     Int      @default(0)
   createdAt DateTime @default(now())
 }
 
@@ -135,23 +267,12 @@ model Partenaire {
   createdAt DateTime @default(now())
 }
 
-model Cotisation {
-  id        String   @id @default(cuid())
-  montant   Int
-  annee     String
-  statut    String   @default("PAYE") // PAYE, EN_RETARD, IMPAYE
-  date      DateTime @default(now())
-  ref       String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-}
-
-model NewsletterAbonne {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  actif     Boolean  @default(true)
-  createdAt DateTime @default(now())
+model NewsletterSubscriber {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  nom             String?
+  dateAbonnement  DateTime         @default(now())
+  statut          StatutNewsletter @default(ACTIF)
 }
 
 model Don {
@@ -163,16 +284,6 @@ model Don {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   statut    String   @default("EN_ATTENTE") // EN_ATTENTE, VALIDE
-  createdAt DateTime @default(now())
-}
-
-model ProjetCommentaire {
-  id        String   @id @default(cuid())
-  contenu   String
-  projetId  String
-  projet    Projet   @relation(fields: [projetId], references: [id], onDelete: Cascade)
-  auteurId  String
-  auteur    User     @relation(fields: [auteurId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 

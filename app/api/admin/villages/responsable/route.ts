@@ -11,35 +11,54 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { userId, action, village } = body;
+    const { userId, action, villageId } = body;
 
-    if (!userId || !action || !village) {
+    if (!userId || !action || !villageId) {
       return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
     }
 
     if (action === "promote") {
-      // 1. Rétrograder le responsable actuel du village (s'il existe)
-      await prisma.user.updateMany({
-        where: {
-          village: village,
-          role: "RESPONSABLE",
-        },
-        data: {
-          role: "MEMBRE",
-        },
-      });
+      // 1. Récupérer l'ancien chef
+      const village = await prisma.village.findUnique({ where: { id: villageId } });
+      
+      // Transaction pour s'assurer que tout se passe bien en même temps
+      const queries = [];
+      
+      if (village?.chefId) {
+        queries.push(
+          prisma.user.update({
+            where: { id: village.chefId },
+            data: { role: "MEMBRE" },
+          })
+        );
+      }
 
-      // 2. Promouvoir le nouvel utilisateur
-      await prisma.user.update({
-        where: { id: userId },
-        data: { role: "RESPONSABLE" },
-      });
+      queries.push(
+        prisma.village.update({
+          where: { id: villageId },
+          data: { chefId: userId },
+        })
+      );
+
+      queries.push(
+        prisma.user.update({
+          where: { id: userId },
+          data: { role: "RESPONSABLE" },
+        })
+      );
+
+      await prisma.$transaction(queries);
     } else if (action === "demote") {
-      // Rétrograder l'utilisateur
-      await prisma.user.update({
-        where: { id: userId },
-        data: { role: "MEMBRE" },
-      });
+      await prisma.$transaction([
+        prisma.village.update({
+          where: { id: villageId },
+          data: { chefId: null },
+        }),
+        prisma.user.update({
+          where: { id: userId },
+          data: { role: "MEMBRE" },
+        })
+      ]);
     } else {
       return NextResponse.json({ error: "Action invalide" }, { status: 400 });
     }

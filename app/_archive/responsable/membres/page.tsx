@@ -13,12 +13,13 @@ export const metadata: Metadata = { title: "Membres | Espace Responsable" };
 export default async function ResponsableMembres() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect("/login");
-  const village = (session.user as any).village;
-  if (!village) redirect("/responsable");
+  const villageId = (session.user as any).villageId;
+  const villageName = (session.user as any).villageName;
+  if (!villageId) redirect("/responsable");
 
   const membres = await prisma.user.findMany({
-    where: { village, role: "MEMBRE" },
-    orderBy: { createdAt: "desc" },
+    where: { villageId },
+    orderBy: { nom: "asc" },
   });
 
   return (
@@ -29,7 +30,7 @@ export default async function ResponsableMembres() {
           Membres du village
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--muted-foreground)" }}>
-          {membres.length} membre{membres.length > 1 ? "s" : ""} pour <span className="font-semibold">{village}</span>
+          {membres.length} membre{membres.length > 1 ? "s" : ""} pour <span className="font-semibold">{villageName}</span>
         </p>
       </div>
 
@@ -39,7 +40,10 @@ export default async function ResponsableMembres() {
           prenom: m.prenom,
           nom: m.nom,
           email: m.email,
-          village: m.village,
+          villageId: m.villageId,
+          statut: m.statut,
+          estDelegue: m.estDelegue,
+          role: m.role,
           createdAt: m.createdAt.toISOString(),
         }))}
       />

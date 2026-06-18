@@ -16,7 +16,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Veuillez entrer votre email et mot de passe");
         }
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
+          include: { village: true }
         });
         if (!user) throw new Error("Aucun utilisateur trouvé avec cet email");
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
@@ -26,7 +27,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: `${user.prenom} ${user.nom}`,
           role: user.role,
-          village: user.village,
+          villageId: user.villageId,
+          villageName: user.village?.nom,
         };
       }
     })
@@ -36,7 +38,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
-        token.village = (user as any).village;
+        token.villageId = (user as any).villageId;
+        token.villageName = (user as any).villageName;
       }
       return token;
     },
@@ -44,7 +47,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;
-        (session.user as any).village = token.village;
+        (session.user as any).villageId = token.villageId;
+        (session.user as any).villageName = token.villageName;
       }
       return session;
     }
