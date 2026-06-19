@@ -61,7 +61,15 @@ export function PublicationsResponsable({ initialActualites, initialProjets, ini
     setIsPublishingNews(true);
     try {
       const res = await fetch("/api/actualites", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ titre: newsTitle, contenu: newsContent, categorie: newsCategory, image: newsImage || null, auteurId }) });
-      if (res.ok) { setActualites(prev => [await res.json(), ...prev]); setNewsTitle(""); setNewsContent(""); setNewsImage(""); alert("Actualité publiée !"); router.refresh(); }
+      if (res.ok) { 
+        const data = await res.json();
+        setActualites(prev => [data, ...prev]); 
+        setNewsTitle(""); 
+        setNewsContent(""); 
+        setNewsImage(""); 
+        alert("Actualité publiée !"); 
+        router.refresh(); 
+      }
       else alert("Erreur lors de la publication.");
     } catch { alert("Une erreur est survenue."); }
     finally { setIsPublishingNews(false); }
@@ -95,7 +103,15 @@ export function PublicationsResponsable({ initialActualites, initialProjets, ini
     setIsSubmittingProject(true);
     try {
       const res = await fetch("/api/projets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ titre: projectTitle, description: projectDesc, image: projectImage || null, soumisPar: village }) });
-      if (res.ok) { setProjets(prev => [await res.json(), ...prev]); setProjectTitle(""); setProjectDesc(""); setProjectImage(""); alert("Projet soumis pour validation !"); router.refresh(); }
+      if (res.ok) { 
+        const data = await res.json();
+        setProjets(prev => [data, ...prev]); 
+        setProjectTitle(""); 
+        setProjectDesc(""); 
+        setProjectImage(""); 
+        alert("Projet soumis pour validation !"); 
+        router.refresh(); 
+      }
       else alert("Erreur lors de la soumission.");
     } catch { alert("Une erreur est survenue."); }
     finally { setIsSubmittingProject(false); }
@@ -107,7 +123,16 @@ export function PublicationsResponsable({ initialActualites, initialProjets, ini
     setIsSubmittingEvent(true);
     try {
       const res = await fetch("/api/evenements", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ titre: eventTitle, description: eventDesc, date: eventDate, lieu: eventLieu, statut: "EN_ATTENTE" }) });
-      if (res.ok) { setEvenements(prev => [await res.json(), ...prev]); setEventTitle(""); setEventDesc(""); setEventDate(""); setEventLieu(""); alert("Événement proposé pour validation !"); router.refresh(); }
+      if (res.ok) { 
+        const data = await res.json();
+        setEvenements(prev => [data, ...prev]); 
+        setEventTitle(""); 
+        setEventDesc(""); 
+        setEventDate(""); 
+        setEventLieu(""); 
+        alert("Événement proposé pour validation !"); 
+        router.refresh(); 
+      }
       else alert("Erreur lors de la soumission.");
     } catch { alert("Une erreur est survenue."); }
     finally { setIsSubmittingEvent(false); }

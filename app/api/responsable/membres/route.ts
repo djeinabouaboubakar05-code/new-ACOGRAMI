@@ -10,13 +10,13 @@ export async function DELETE(request: Request) {
   }
 
   const userRole = (session.user as any).role;
-  const responsableVillage = (session.user as any).village;
+  const responsableVillageId = (session.user as any).villageId;
 
   if (userRole !== "RESPONSABLE" && userRole !== "ADMIN") {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  if (!responsableVillage && userRole !== "ADMIN") {
+  if (!responsableVillageId && userRole !== "ADMIN") {
     return NextResponse.json({ error: "Village non spécifié pour ce responsable" }, { status: 400 });
   }
 
@@ -38,10 +38,10 @@ export async function DELETE(request: Request) {
 
     // Responsable can only delete members of their own village
     if (userRole === "RESPONSABLE") {
-      if (userToDelete.village !== responsableVillage) {
+      if (userToDelete.villageId !== responsableVillageId) {
         return NextResponse.json({ error: "Vous ne pouvez supprimer que les membres de votre propre village" }, { status: 403 });
       }
-      if (userToDelete.role !== "MEMBRE") {
+      if (userToDelete.roleSysteme !== "MEMBRE") {
         return NextResponse.json({ error: "Vous ne pouvez pas supprimer un administrateur ou un autre responsable" }, { status: 403 });
       }
     }

@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 
 export default async function UpcomingProjects() {
   const projets = await prisma.projet.findMany({
-    where: { statut: "VALIDE" },
     orderBy: { createdAt: 'desc' },
     take: 5,
   });

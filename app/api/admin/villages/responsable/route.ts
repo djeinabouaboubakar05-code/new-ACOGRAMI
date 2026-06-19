@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session || (session.user as any).role !== "ADMIN") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
@@ -18,47 +18,37 @@ export async function POST(req: Request) {
     }
 
     if (action === "promote") {
-      // 1. Récupérer l'ancien chef
-      const village = await prisma.village.findUnique({ where: { id: villageId } });
+      // Trouver les anciens responsables de ce village pour les repasser en MEMBRE simple
+      const oldResponsables = await prisma.user.findMany({
+        where: { villageId, roleSysteme: "RESPONSABLE" }
+      });
       
-      // Transaction pour s'assurer que tout se passe bien en même temps
       const queries = [];
       
-      if (village?.chefId) {
+      for (const oldResp of oldResponsables) {
         queries.push(
           prisma.user.update({
-            where: { id: village.chefId },
-            data: { role: "MEMBRE" },
+            where: { id: oldResp.id },
+            data: { roleSysteme: "MEMBRE" },
           })
         );
       }
 
-      queries.push(
-        prisma.village.update({
-          where: { id: villageId },
-          data: { chefId: userId },
-        })
-      );
-
+      // Promouvoir le nouvel utilisateur et le lier au village
       queries.push(
         prisma.user.update({
           where: { id: userId },
-          data: { role: "RESPONSABLE" },
+          data: { roleSysteme: "RESPONSABLE", villageId: villageId },
         })
       );
 
       await prisma.$transaction(queries);
     } else if (action === "demote") {
-      await prisma.$transaction([
-        prisma.village.update({
-          where: { id: villageId },
-          data: { chefId: null },
-        }),
-        prisma.user.update({
-          where: { id: userId },
-          data: { role: "MEMBRE" },
-        })
-      ]);
+      // Déchoir le responsable de ses droits (il redevient simple membre du village)
+      await prisma.user.update({
+        where: { id: userId },
+        data: { roleSysteme: "MEMBRE" },
+      });
     } else {
       return NextResponse.json({ error: "Action invalide" }, { status: 400 });
     }

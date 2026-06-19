@@ -41,16 +41,16 @@ export async function POST(req: Request) {
 
     switch (action) {
       case "toggle_delegue":
-        dataToUpdate = { estDelegue: !targetUser.estDelegue };
+        dataToUpdate = { roleVillage: targetUser.roleVillage === "DELEGUE" ? "MEMBRE_SIMPLE" : "DELEGUE" };
         break;
       case "suspend":
-        dataToUpdate = { statut: "SUSPENDU", estDelegue: false };
+        dataToUpdate = { statut: "SUSPENDU", roleVillage: "MEMBRE_SIMPLE" };
         break;
       case "depart":
-        dataToUpdate = { statut: "PARTI", estDelegue: false };
+        dataToUpdate = { statut: "ANCIEN", roleVillage: "MEMBRE_SIMPLE" };
         break;
       case "reintegrer":
-        dataToUpdate = { statut: "ACTIF" };
+        dataToUpdate = { statut: "EN_REGLE" };
         break;
       default:
         return NextResponse.json({ error: "Action non valide" }, { status: 400 });

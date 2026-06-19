@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function UpcomingEvents() {
   const evenements = await prisma.evenement.findMany({
-    where: { statut: "VALIDE" },
+    where: { estPublic: true },
     orderBy: { date: 'asc' },
     take: 5,
   });

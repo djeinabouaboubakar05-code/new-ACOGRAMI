@@ -4,11 +4,20 @@ import { sendNewsletterNotification } from "@/lib/email";
 
 export async function GET() {
   try {
-    const abonnes = await prisma.newsletterAbonne.findMany({
-      orderBy: { createdAt: 'desc' }
+    const subscribers = await prisma.newsletterSubscriber.findMany({
+      orderBy: { dateAbonnement: 'desc' }
     });
+    // Mapper pour compatibilité frontend (statut === ACTIF -> actif: true)
+    const abonnes = subscribers.map(s => ({
+      id: s.id,
+      email: s.email,
+      nom: s.nom,
+      actif: s.statut === 'ACTIF',
+      createdAt: s.dateAbonnement
+    }));
     return NextResponse.json(abonnes);
   } catch (error) {
+    console.error("Error fetching newsletter subscribers:", error);
     return NextResponse.json({ error: "Erreur lors de la récupération" }, { status: 500 });
   }
 }
@@ -20,16 +29,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Sujet et contenu requis." }, { status: 400 });
     }
 
-    const abonnes = await prisma.newsletterAbonne.findMany({
-      where: { actif: true }
+    const subscribers = await prisma.newsletterSubscriber.findMany({
+      where: { statut: 'ACTIF' }
     });
 
-    const emails = abonnes.map(a => a.email);
+    const emails = subscribers.map(s => s.email);
     if (emails.length === 0) {
       return NextResponse.json({ error: "Aucun abonné actif." }, { status: 400 });
     }
 
-    // Appel à la fonction d'envoi d'e-mail
+    // Envoi des emails de notification
     await sendNewsletterNotification(emails, subject, content);
 
     return NextResponse.json({ message: `Newsletter envoyée avec succès à ${emails.length} abonné(s).` });

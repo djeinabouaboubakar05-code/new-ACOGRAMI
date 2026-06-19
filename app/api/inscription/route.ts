@@ -30,6 +30,16 @@ export async function POST(request: Request) {
         // Hacher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10)
 
+        // Trouver le village correspondant
+        const dbVillage = await prisma.village.findFirst({
+            where: {
+                OR: [
+                    { nom: village },
+                    { slug: village }
+                ]
+            }
+        });
+
         // Créer l'utilisateur
         const user = await prisma.user.create({
             data: {
@@ -37,19 +47,9 @@ export async function POST(request: Request) {
                 password: hashedPassword,
                 nom,
                 prenom,
-                role: 'MEMBRE',
-                estValide: false  // En attente de validation par un responsable
-            }
-        })
-
-        // Créer une demande d'adhésion
-        await prisma.demandeAdhesion.create({
-            data: {
-                email,
-                nom,
-                prenom,
-                village,
-                statut: 'EN_ATTENTE'
+                roleSysteme: 'MEMBRE',
+                statut: 'EN_ATTENTE_VALIDATION',
+                villageId: dbVillage ? dbVillage.id : null
             }
         })
 

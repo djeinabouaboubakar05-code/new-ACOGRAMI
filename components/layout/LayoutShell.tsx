@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Chatbot } from "@/components/layout/Chatbot";
 
-const LOGGED_PREFIXES = ["/admin", "/membre", "/responsable"];
+const LOGGED_PREFIXES = ["/dashboard", "/admin", "/membre", "/responsable"];
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

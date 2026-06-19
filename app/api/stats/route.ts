@@ -8,9 +8,9 @@ export async function GET() {
       prisma.village.count(),
       prisma.projet.count(),
       prisma.evenement.count(),
-      prisma.demandeAdhesion.count({ where: { statut: 'EN_ATTENTE' } }),
+      prisma.user.count({ where: { statut: 'EN_ATTENTE_VALIDATION' } }),
     ])
-    const projetsValides = await prisma.projet.count({ where: { statut: 'VALIDE' } })
+    const projetsValides = await prisma.projet.count({ where: { avancement: { gt: 0 } } })
     return NextResponse.json({ membres, villages, projets, evenements, adhesions, projetsValides })
   } catch {
     return NextResponse.json({ error: 'Erreur lors du chargement des stats' }, { status: 500 })

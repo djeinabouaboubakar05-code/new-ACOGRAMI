@@ -28,7 +28,7 @@ export default function LoginPage() {
       const sessRes = await fetch("/api/auth/session");
       const session = sessRes.ok ? await sessRes.json() : {};
       const role = session?.user?.role;
-      router.push(role === "ADMIN" ? "/admin" : role === "RESPONSABLE" ? "/responsable" : "/membre");
+      router.push(role === "ADMIN" ? "/dashboard/admin" : role === "RESPONSABLE" ? "/dashboard/responsable" : "/dashboard/membre");
       router.refresh();
     }
   }

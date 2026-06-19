@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { prisma } from '../lib/prisma';
 import bcrypt from "bcryptjs";
+import { RoleSysteme, StatutMembre } from '@prisma/client';
 
 async function main() {
   // 1. Villages
@@ -40,28 +41,49 @@ async function main() {
   }
   console.log(`✓ ${valeurs.length} valeurs`);
 
-  // 3. Bureau
-  const bureau = [
-    { nom: "Fobiezogang", prenom: "Martin", fonction: "Président", telephone: "699 12 34 56", email: "fobiezogang@yahoo.fr", ordre: 1 },
-    { nom: "Tchinda", prenom: "Marie", fonction: "Vice-Présidente", telephone: "677 78 90 12", email: "marie.tchinda@email.com", ordre: 2 },
-    { nom: "Kengne", prenom: "Paul", fonction: "Secrétaire Général", telephone: "694 56 78 90", email: "paul.kengne@email.com", ordre: 3 },
-    { nom: "Fotso", prenom: "Claire", fonction: "Trésorière", telephone: "698 23 45 67", email: "claire.fotso@email.com", ordre: 4 },
-    { nom: "Nkongue", prenom: "Jean", fonction: "Commissaire aux Comptes", telephone: "690 34 56 78", email: "jean.nkongue@email.com", ordre: 5 },
-  ];
-  for (const m of bureau) {
-    const existing = await prisma.membreBureau.findFirst({ where: { nom: m.nom, prenom: m.prenom } });
-    if (!existing) await prisma.membreBureau.create({ data: m });
-  }
-  console.log(`✓ ${bureau.length} membres du bureau`);
-
-  // 4. Utilisateur admin pour les actualités
+  // 3. Utilisateur admin pour les actualités et relations
   const hash = await bcrypt.hash("admin123", 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@acogrami.org" },
     update: {},
-    create: { email: "admin@acogrami.org", password: hash, nom: "Admin", prenom: "ACOGRAMI", role: "ADMIN", estValide: true },
+    create: { 
+      email: "admin@acogrami.org", 
+      password: hash, 
+      nom: "Admin", 
+      prenom: "ACOGRAMI", 
+      roleSysteme: RoleSysteme.ADMIN, 
+      statut: StatutMembre.EN_REGLE 
+    },
   });
   console.log(`✓ utilisateur admin: ${admin.email}`);
+
+  // 4. Bureau (modélisé comme des Utilisateurs avec roleBureau et roleSysteme RESPONSABLE)
+  const bureau = [
+    { nom: "Fobiezogang", prenom: "Martin", roleBureau: "Président", telephone: "699 12 34 56", email: "fobiezogang@yahoo.fr" },
+    { nom: "Tchinda", prenom: "Marie", roleBureau: "Vice-Présidente", telephone: "677 78 90 12", email: "marie.tchinda@email.com" },
+    { nom: "Kengne", prenom: "Paul", roleBureau: "Secrétaire Général", telephone: "694 56 78 90", email: "paul.kengne@email.com" },
+    { nom: "Fotso", prenom: "Claire", roleBureau: "Trésorière", telephone: "698 23 45 67", email: "claire.fotso@email.com" },
+    { nom: "Nkongue", prenom: "Jean", roleBureau: "Commissaire aux Comptes", telephone: "690 34 56 78", email: "jean.nkongue@email.com" },
+  ];
+  const bureauHash = await bcrypt.hash("bureau123", 10);
+  for (const m of bureau) {
+    const existing = await prisma.user.findUnique({ where: { email: m.email } });
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          nom: m.nom,
+          prenom: m.prenom,
+          email: m.email,
+          password: bureauHash,
+          telephone: m.telephone,
+          roleBureau: m.roleBureau,
+          roleSysteme: RoleSysteme.RESPONSABLE,
+          statut: StatutMembre.EN_REGLE,
+        }
+      });
+    }
+  }
+  console.log(`✓ ${bureau.length} membres du bureau créés en tant qu'utilisateurs`);
 
   // 5. Actualités
   const actualites = [
@@ -81,27 +103,43 @@ async function main() {
 
   // 6. Événements
   const evenements = [
-    { titre: "Assemblée Générale Annuelle", description: "Réunion annuelle des membres de l'ACOGRAMI pour faire le bilan de l'année écoulée et planifier les actions futures.", date: new Date("2026-06-15"), lieu: "Ngaoundéré, Salle polyvalente du Grand Mifi", statut: "VALIDE" },
-    { titre: "Fête de la Culture du Grand Mifi", description: "Célébration des traditions bamilékées avec danses, musiques, expositions d'artisanat et dégustations culinaires.", date: new Date("2026-08-20"), lieu: "Place publique de la mairie, Bafoussam", statut: "VALIDE" },
-    { titre: "Séminaire de formation des responsables", description: "Formation des responsables de villages sur la gestion associative et le développement communautaire.", date: new Date("2026-09-10"), lieu: "Siège ACOGRAMI, Ngaoundéré", statut: "VALIDE" },
-    { titre: "Journée de collecte de fonds", description: "Journée dédiée à la collecte de fonds pour financer les projets de l'association.", date: new Date("2026-10-05"), lieu: "Marché central, Ngaoundéré", statut: "EN_ATTENTE" },
+    { titre: "Assemblée Générale Annuelle", description: "Réunion annuelle des membres de l'ACOGRAMI pour faire le bilan de l'année écoulée et planifier les actions futures.", date: new Date("2026-06-15"), lieu: "Ngaoundéré, Salle polyvalente du Grand Mifi" },
+    { titre: "Fête de la Culture du Grand Mifi", description: "Célébration des traditions bamilékées avec danses, musiques, expositions d'artisanat et dégustations culinaires.", date: new Date("2026-08-20"), lieu: "Place publique de la mairie, Bafoussam" },
+    { titre: "Séminaire de formation des responsables", description: "Formation des responsables de villages sur la gestion associative et le développement communautaire.", date: new Date("2026-09-10"), lieu: "Siège ACOGRAMI, Ngaoundéré" },
+    { titre: "Journée de collecte de fonds", description: "Journée dédiée à la collecte de fonds pour financer les projets de l'association.", date: new Date("2026-10-05"), lieu: "Marché central, Ngaoundéré" },
   ];
   for (const e of evenements) {
     const existing = await prisma.evenement.findFirst({ where: { titre: e.titre } });
-    if (!existing) await prisma.evenement.create({ data: { ...e, image: null } });
+    if (!existing) {
+      await prisma.evenement.create({ 
+        data: { 
+          ...e, 
+          image: null,
+          createur: { connect: { id: admin.id } }
+        } 
+      });
+    }
   }
   console.log(`✓ ${evenements.length} événements`);
 
   // 7. Projets
   const projets = [
-    { titre: "Construction d'un puits à Bamougoum", description: "Projet d'accès à l'eau potable pour le village de Bamougoum. Installation d'un forage équipé de panneaux solaires.", statut: "VALIDE", soumisPar: "Chef de village Bamougoum" },
-    { titre: "Rénovation de l'école primaire de Bayangam", description: "Réfection des toitures, achat de nouveaux équipements scolaires et construction de deux salles de classe supplémentaires.", statut: "VALIDE", soumisPar: "Responsable éducatif" },
-    { titre: "Bourse d'études 2026-2027", description: "Programme de bourses pour 10 étudiants méritants issus des villages du Grand Mifi.", statut: "EN_ATTENTE", soumisPar: "Commission éducation" },
-    { titre: "Centre culturel inter-villages", description: "Construction d'un centre culturel pour accueillir les événements et les formations inter-villages.", statut: "EN_ATTENTE", soumisPar: "Bureau exécutif" },
+    { titre: "Construction d'un puits à Bamougoum", description: "Projet d'accès à l'eau potable pour le village de Bamougoum. Installation d'un forage équipé de panneaux solaires.", avancement: 40, budgetAlloue: 5000000 },
+    { titre: "Rénovation de l'école primaire de Bayangam", description: "Réfection des toitures, achat de nouveaux équipements scolaires et construction de deux salles de classe supplémentaires.", avancement: 100, budgetAlloue: 3000000 },
+    { titre: "Bourse d'études 2026-2027", description: "Programme de bourses pour 10 étudiants méritants issus des villages du Grand Mifi.", avancement: 10, budgetAlloue: 1000000 },
+    { titre: "Centre culturel inter-villages", description: "Construction d'un centre culturel pour accueillir les événements et les formations inter-villages.", avancement: 0, budgetAlloue: 15000000 },
   ];
   for (const p of projets) {
     const existing = await prisma.projet.findFirst({ where: { titre: p.titre } });
-    if (!existing) await prisma.projet.create({ data: { ...p, image: null } });
+    if (!existing) {
+      await prisma.projet.create({ 
+        data: { 
+          ...p, 
+          image: null,
+          admin: { connect: { id: admin.id } }
+        } 
+      });
+    }
   }
   console.log(`✓ ${projets.length} projets`);
 

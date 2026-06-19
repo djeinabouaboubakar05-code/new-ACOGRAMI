@@ -14,15 +14,11 @@ export default async function EvenementsPage() {
   let rawEvenements: any[] = [];
   try {
     rawEvenements = await prisma.evenement.findMany({
-      where: { statut: "VALIDE" },
-      orderBy: { date: "asc" },
-      include: { inscriptions: { select: { userId: true } } },
-    });
-  } catch {
-    rawEvenements = await prisma.evenement.findMany({
-      where: { statut: "VALIDE" },
+      where: { estPublic: true },
       orderBy: { date: "asc" },
     });
+  } catch (error) {
+    console.error("Error fetching events:", error);
   }
 
   const data = rawEvenements.map((e: any) => ({
@@ -32,8 +28,8 @@ export default async function EvenementsPage() {
     date: e.date.toISOString(),
     lieu: e.lieu,
     image: e.image ?? null,
-    nbInscrits: e.inscriptions?.length ?? 0,
-    isInscrit: userId ? (e.inscriptions ?? []).some((i: any) => i.userId === userId) : false,
+    nbInscrits: 0,
+    isInscrit: false,
   }));
 
   return <EvenementsClient evenements={data} isLoggedIn={!!userId} />;

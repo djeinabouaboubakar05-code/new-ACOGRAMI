@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default async function ProjetsPage() {
   const projets = await prisma.projet.findMany({
-    where: { statut: "VALIDE" },
     orderBy: { createdAt: "desc" },
+    include: { admin: true }
   });
 
   return (
@@ -39,9 +39,9 @@ export default async function ProjetsPage() {
                   <p className="text-muted-foreground line-clamp-3 mb-4 text-sm leading-relaxed">{p.description}</p>
                 </div>
                 <div className="flex items-center justify-between border-t border-border pt-4 mt-auto">
-                  <span className="text-xs font-semibold text-muted-foreground">Projet de : {p.soumisPar}</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Projet de : {p.admin.prenom} {p.admin.nom}</span>
                   <Link href={`/projets/${p.id}`} className="text-sm font-bold text-acogrami-green hover:text-acogrami-earth transition-colors flex items-center gap-1">
-                    Détails & Commentaires <ArrowRight className="h-4 w-4" />
+                    Détails <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
               </div>

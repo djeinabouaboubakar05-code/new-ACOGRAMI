@@ -15,7 +15,7 @@ export default async function VillageDetailPage({ params }: { params: Promise<{ 
   const village = await prisma.village.findUnique({ where: { slug } });
   if (!village) notFound();
 
-  const membresCount = await prisma.user.count({ where: { village: village.nom } });
+  const membresCount = await prisma.user.count({ where: { villageId: village.id } });
 
   return (
     <>

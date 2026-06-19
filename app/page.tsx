@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 export default async function HomePage() {
   const [membres, projetsValides, villages] = await Promise.all([
     prisma.user.count(),
-    prisma.projet.count({ where: { statut: "VALIDE" } }),
+    prisma.projet.count({ where: { avancement: { gt: 0 } } }),
     prisma.village.count(),
   ]);
 

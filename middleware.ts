@@ -9,15 +9,15 @@ export default withAuth(
     // Redirection de sécurité si le rôle ne correspond pas au dossier demandé
     
     // Règle 1 : Seul l'Admin peut aller dans /dashboard/admin
-    if (path.startsWith("/dashboard/admin") && token?.roleSysteme !== "ADMIN") {
+    if (path.startsWith("/dashboard/admin") && token?.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard/membre", req.url));
     }
     
     // Règle 2 : Le Responsable ou l'Admin peuvent aller dans /dashboard/responsable
     if (
       path.startsWith("/dashboard/responsable") && 
-      token?.roleSysteme !== "RESPONSABLE" && 
-      token?.roleSysteme !== "ADMIN"
+      token?.role !== "RESPONSABLE" && 
+      token?.role !== "ADMIN"
     ) {
       return NextResponse.redirect(new URL("/dashboard/membre", req.url));
     }

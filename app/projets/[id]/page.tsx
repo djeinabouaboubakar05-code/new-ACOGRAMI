@@ -2,24 +2,22 @@ import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { FolderHeart, Calendar } from "lucide-react";
-import { ProjectComments } from "@/components/projets/ProjectComments";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const projet = await prisma.projet.findUnique({ where: { id: params.id } });
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const projet = await prisma.projet.findUnique({ where: { id } });
   if (!projet) return { title: "Projet non trouvé" };
   return { title: `${projet.titre} | Projets ACOGRAMI` };
 }
 
-export default async function ProjetDetailPage({ params }: { params: { id: string } }) {
+export default async function ProjetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const projet = await prisma.projet.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
-      commentaires: {
-        orderBy: { createdAt: "desc" },
-        include: { auteur: { select: { nom: true, prenom: true } } }
-      }
+      admin: true
     }
   });
 
@@ -41,7 +39,7 @@ export default async function ProjetDetailPage({ params }: { params: { id: strin
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" /> {new Date(projet.createdAt).toLocaleDateString("fr-FR")}
                 </span>
-                <span className="font-semibold text-acogrami-accent">Village : {projet.soumisPar}</span>
+                <span className="font-semibold text-acogrami-accent">Projet de : {projet.admin.prenom} {projet.admin.nom}</span>
               </div>
             </div>
           </div>
@@ -50,17 +48,6 @@ export default async function ProjetDetailPage({ params }: { params: { id: strin
             {projet.description}
           </div>
         </div>
-
-        <ProjectComments 
-          projetId={projet.id} 
-          initialComments={projet.commentaires.map(c => ({
-            id: c.id,
-            contenu: c.contenu,
-            createdAt: c.createdAt.toISOString(),
-            auteur: { nom: c.auteur.nom, prenom: c.auteur.prenom }
-          }))}
-          session={session}
-        />
       </div>
     </div>
   );

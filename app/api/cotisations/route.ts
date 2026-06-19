@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-// GET : Récupérer les cotisations
+// GET : Récupérer les cotisations (Paiements)
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
@@ -19,18 +19,41 @@ export async function GET(request: Request) {
     if (userId) {
       where.userId = userId;
     } else if (village) {
-      where.user = { village };
+      where.user = {
+        village: {
+          OR: [
+            { nom: village },
+            { slug: village }
+          ]
+        }
+      };
     }
 
-    const cotisations = await prisma.cotisation.findMany({
+    const payments = await prisma.paiement.findMany({
       where,
       include: {
         user: {
           select: { nom: true, prenom: true, email: true, village: true }
         }
       },
-      orderBy: { date: "desc" }
+      orderBy: { datePaiement: "desc" }
     });
+
+    const cotisations = payments.map(p => ({
+      id: p.id,
+      montant: p.montant,
+      annee: new Date(p.datePaiement).getFullYear().toString(),
+      statut: p.statut === "VALIDE" ? "PAYE" : p.statut === "REJETE" ? "IMPAYE" : "EN_ATTENTE",
+      date: p.datePaiement,
+      ref: p.reference,
+      userId: p.userId,
+      user: {
+        nom: p.user.nom,
+        prenom: p.user.prenom,
+        email: p.user.email,
+        village: p.user.village?.nom || "Non spécifié"
+      }
+    }));
 
     return NextResponse.json(cotisations);
   } catch (error) {
@@ -58,15 +81,26 @@ export async function POST(request: Request) {
 
     const targetUserId = userId || currentUserId;
 
-    const cotisation = await prisma.cotisation.create({
+    const payment = await prisma.paiement.create({
       data: {
-        montant: parseInt(montant),
-        annee,
-        statut: statut || "PAYE",
-        ref,
+        montant: parseFloat(montant),
+        type: "REINSCRIPTION",
+        methode: "MOBILE_MONEY",
+        reference: ref,
+        statut: statut === "PAYE" ? "VALIDE" : "EN_ATTENTE",
         userId: targetUserId,
       }
     });
+
+    const cotisation = {
+      id: payment.id,
+      montant: payment.montant,
+      annee,
+      statut: payment.statut === "VALIDE" ? "PAYE" : "EN_ATTENTE",
+      date: payment.datePaiement,
+      ref: payment.reference,
+      userId: payment.userId,
+    };
 
     return NextResponse.json(cotisation, { status: 201 });
   } catch (error) {
@@ -95,12 +129,24 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "ID et statut requis" }, { status: 400 });
     }
 
-    const updated = await prisma.cotisation.update({
+    const updated = await prisma.paiement.update({
       where: { id },
-      data: { statut }
+      data: { 
+        statut: statut === "PAYE" ? "VALIDE" : statut === "IMPAYE" ? "REJETE" : statut 
+      }
     });
 
-    return NextResponse.json(updated);
+    const cotisation = {
+      id: updated.id,
+      montant: updated.montant,
+      annee: new Date(updated.datePaiement).getFullYear().toString(),
+      statut: updated.statut === "VALIDE" ? "PAYE" : updated.statut === "REJETE" ? "IMPAYE" : "EN_ATTENTE",
+      date: updated.datePaiement,
+      ref: updated.reference,
+      userId: updated.userId,
+    };
+
+    return NextResponse.json(cotisation);
   } catch (error) {
     console.error("Error updating cotisation:", error);
     return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 });

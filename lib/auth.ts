@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: `${user.prenom} ${user.nom}`,
-          role: user.role,
+          role: user.roleSysteme,
           villageId: user.villageId,
           villageName: user.village?.nom,
         };

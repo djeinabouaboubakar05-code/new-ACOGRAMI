@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { Phone, Mail } from "lucide-react";
 
 export async function BureauSection() {
-  const membres = await prisma.membreBureau.findMany({ orderBy: { ordre: "asc" } });
+  const membres = await prisma.user.findMany({ 
+    where: { roleBureau: { not: null } }
+  });
   if (membres.length === 0) return null;
 
   return (
@@ -22,13 +24,13 @@ export async function BureauSection() {
               <img src={membre.photo} alt={`${membre.prenom} ${membre.nom}`} className="w-24 h-24 rounded-full object-cover border-4 shadow-lg mb-4 group-hover:scale-105 transition-transform" style={{ borderColor: "var(--card-border)" }} />
             ) : (
               <div className="w-24 h-24 rounded-full border-4 shadow-lg mb-4 group-hover:scale-105 transition-transform flex items-center justify-center font-bold text-2xl text-white" style={{ backgroundColor: "var(--acogrami-green)", borderColor: "var(--background)" }}>
-                {membre.prenom[0]}{membre.nom[0]}
+                {membre.prenom ? membre.prenom[0] : ""}{membre.nom ? membre.nom[0] : ""}
               </div>
             )}
             <h3 className="font-bold text-sm leading-tight mb-1" style={{ color: "var(--foreground)" }}>
               {membre.prenom} {membre.nom}
             </h3>
-            <p className="text-xs font-semibold mb-3" style={{ color: "var(--acogrami-accent)" }}>{membre.fonction}</p>
+            <p className="text-xs font-semibold mb-3" style={{ color: "var(--acogrami-accent)" }}>{membre.roleBureau}</p>
             {membre.telephone && (
               <a href={`tel:${membre.telephone}`} className="flex items-center gap-1 text-xs transition-colors hover:underline" style={{ color: "var(--muted-foreground)" }}>
                 <Phone className="h-3 w-3" />{membre.telephone}

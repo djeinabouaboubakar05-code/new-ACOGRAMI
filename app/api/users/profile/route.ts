@@ -28,13 +28,13 @@ export async function PUT(request: Request) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
 
-      const isValid = await bcrypt.compare(currentPassword, user.motDePasse);
+      const isValid = await bcrypt.compare(currentPassword, user.password);
       if (!isValid) {
         return NextResponse.json({ error: "Mot de passe actuel incorrect" }, { status: 400 });
       }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
-      dataToUpdate.motDePasse = hashedPassword;
+      dataToUpdate.password = hashedPassword;
     }
 
     const updatedUser = await prisma.user.update({

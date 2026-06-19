@@ -25,9 +25,9 @@ export function Navbar() {
   const user = session?.user as any;
 
   const dashHref =
-    user?.role === "ADMIN" ? "/admin"
-    : user?.role === "RESPONSABLE" ? "/responsable"
-    : "/membre";
+    user?.role === "ADMIN" ? "/dashboard/admin"
+    : user?.role === "RESPONSABLE" ? "/dashboard/responsable"
+    : "/dashboard/membre";
 
   const dashLabel =
     user?.role === "ADMIN" ? "Administration"
