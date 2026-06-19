@@ -8,10 +8,15 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjetsPage() {
-  const projets = await prisma.projet.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { admin: true }
-  });
+  let projets: any[] = [];
+  try {
+    projets = await prisma.projet.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { admin: true }
+    });
+  } catch (error) {
+    console.error("Failed to load projets from database:", error);
+  }
 
   return (
     <div className="bg-background min-h-[calc(100vh-64px)] py-16 px-4">

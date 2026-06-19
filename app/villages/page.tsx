@@ -11,7 +11,12 @@ const VILLAGE_COLORS = [
 ];
 
 export default async function VillagesPage() {
-  const villages = await prisma.village.findMany({ orderBy: { nom: "asc" } });
+  let villages: any[] = [];
+  try {
+    villages = await prisma.village.findMany({ orderBy: { nom: "asc" } });
+  } catch (error) {
+    console.error("Failed to load villages from database:", error);
+  }
 
   return (
     <>

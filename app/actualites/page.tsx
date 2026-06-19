@@ -17,7 +17,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ActualitesPage() {
-  const actualites = await prisma.actualite.findMany({ orderBy: { createdAt: 'desc' } });
+  let actualites: any[] = [];
+  try {
+    actualites = await prisma.actualite.findMany({ orderBy: { createdAt: 'desc' } });
+  } catch (error) {
+    console.error("Failed to load actualites from database:", error);
+  }
 
   return (
     <div className="bg-background">

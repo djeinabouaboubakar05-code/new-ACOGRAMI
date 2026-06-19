@@ -2,9 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { Phone, Mail } from "lucide-react";
 
 export async function BureauSection() {
-  const membres = await prisma.user.findMany({ 
-    where: { roleBureau: { not: null } }
-  });
+  let membres: any[] = [];
+  try {
+    membres = await prisma.user.findMany({ 
+      where: { roleBureau: { not: null } }
+    });
+  } catch (error) {
+    console.error("Failed to load bureau members:", error);
+  }
   if (membres.length === 0) return null;
 
   return (

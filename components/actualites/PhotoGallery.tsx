@@ -1,15 +1,20 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function PhotoGallery() {
-  const media = await prisma.galerieMedia.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 8,
-  });
-  const photos = media.map(m => ({
-    id: m.id,
-    titre: m.titre,
-    image: m.urlFichier,
-  }));
+  let photos: any[] = [];
+  try {
+    const media = await prisma.galerieMedia.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 8,
+    });
+    photos = media.map(m => ({
+      id: m.id,
+      titre: m.titre,
+      image: m.urlFichier,
+    }));
+  } catch (error) {
+    console.error("Failed to load photo gallery:", error);
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">

@@ -1,11 +1,16 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function UpcomingEvents() {
-  const evenements = await prisma.evenement.findMany({
-    where: { estPublic: true },
-    orderBy: { date: 'asc' },
-    take: 5,
-  });
+  let evenements: any[] = [];
+  try {
+    evenements = await prisma.evenement.findMany({
+      where: { estPublic: true },
+      orderBy: { date: 'asc' },
+      take: 5,
+    });
+  } catch (error) {
+    console.error("Failed to load upcoming events:", error);
+  }
 
   if (evenements.length === 0) {
     return (

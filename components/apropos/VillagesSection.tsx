@@ -4,7 +4,12 @@ import { prisma } from "@/lib/prisma";
 const COLORS = ["#16a34a","#2563eb","#dc2626","#d97706","#7c3aed","#0891b2","#be185d","#15803d","#1d4ed8","#b45309","#6d28d9","#0e7490","#b91c1c","#047857","#1e40af","#92400e"];
 
 export async function VillagesSection() {
-  const villages = await prisma.village.findMany({ orderBy: { nom: "asc" } });
+  let villages: any[] = [];
+  try {
+    villages = await prisma.village.findMany({ orderBy: { nom: "asc" } });
+  } catch (error) {
+    console.error("Failed to load villages for section:", error);
+  }
 
   return (
     <section className="py-16" style={{ borderBottom: "1px solid var(--card-border)" }}>

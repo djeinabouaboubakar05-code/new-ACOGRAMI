@@ -12,7 +12,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AproposPage() {
-  const valeurs = await prisma.valeur.findMany({ orderBy: { ordre: 'asc' } });
+  let valeurs: any[] = [];
+  try {
+    valeurs = await prisma.valeur.findMany({ orderBy: { ordre: 'asc' } });
+  } catch (error) {
+    console.error("Failed to load values from database:", error);
+  }
 
   return (
     <div>

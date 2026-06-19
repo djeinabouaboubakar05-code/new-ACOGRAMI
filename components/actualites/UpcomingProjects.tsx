@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function UpcomingProjects() {
-  const projets = await prisma.projet.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 5,
-  });
+  let projets: any[] = [];
+  try {
+    projets = await prisma.projet.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+  } catch (error) {
+    console.error("Failed to load upcoming projects:", error);
+  }
 
   if (projets.length === 0) {
     return (

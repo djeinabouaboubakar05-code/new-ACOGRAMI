@@ -5,7 +5,12 @@ import { HOME_IMAGES } from "@/lib/images/home";
 import { ArrowRight } from "lucide-react";
 
 export async function VillagesGrid() {
-  const villages = await prisma.village.findMany({ orderBy: { nom: 'asc' } });
+  let villages: any[] = [];
+  try {
+    villages = await prisma.village.findMany({ orderBy: { nom: 'asc' } });
+  } catch (error) {
+    console.error("Failed to load villages for grid:", error);
+  }
 
   return (
     <section className="bg-acogrami-light py-16">

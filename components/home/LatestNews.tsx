@@ -5,10 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { HOME_IMAGES } from "@/lib/images/home";
 
 export async function LatestNews() {
-  const actualites = await prisma.actualite.findMany({
-    take: 3,
-    orderBy: { createdAt: 'desc' }
-  });
+  let actualites: any[] = [];
+  try {
+    actualites = await prisma.actualite.findMany({
+      take: 3,
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (error) {
+    console.error("Failed to load latest news:", error);
+  }
 
   if (actualites.length === 0) return null;
 

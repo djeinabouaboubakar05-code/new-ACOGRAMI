@@ -3,7 +3,12 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export async function PartnersSection() {
-  const partenaires = await prisma.partenaire.findMany({ orderBy: { nom: 'asc' } });
+  let partenaires: any[] = [];
+  try {
+    partenaires = await prisma.partenaire.findMany({ orderBy: { nom: 'asc' } });
+  } catch (error) {
+    console.error("Failed to load partenaires:", error);
+  }
 
   return (
     <section className="border-t border-zinc-200 bg-background py-16">
